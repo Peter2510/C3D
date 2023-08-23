@@ -1,0 +1,138 @@
+/* Codigo de usuario */
+
+// importaciones y paquetes
+
+package com.peter.c3d.back;
+import java_cup.runtime.Symbol;
+
+
+// Codigo para el parser, variables, metodos
+
+parser code {:
+
+    public Parser(Lexer lexer) {
+        super(lexer);
+    }
+
+    //Metodo llamado automaticamente al encontrar error sintanctico
+
+    public void syntax_error(Symbol s){
+    
+
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+
+        System.out.println("Error Sintactico hallado");
+        System.out.println("Lexema " + lexema + " linea"  + fila + " columna " + columna);
+    }
+
+    
+    //Metodo llamado cuando no se puede recuperar de un error
+    
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        
+        String lexema = s.value.toString();
+        int fila = s.right;
+        int columna = s.left;
+    
+        
+        System.out.println("Error Sintactico hallado");
+        System.out.println("Lexema " + lexema + " linea"  + fila + " columna " + columna);
+
+            
+    } 
+
+:}
+
+                                                    // CODIGO PARA LAS ACCIONES GRAMATICALES
+
+            /* Declaraciones de terminales y no terminales */
+
+    /* TERMINALES */
+
+/* SIMBOLOS ARITMETICOS */
+
+terminal MAS,MENOS,MULTIPLICACION,DIVISION;
+terminal PABIERTO,PCERRADO;
+terminal NUMERO;
+
+/* ASIGNACION */
+terminal ASIGNACION;
+
+/* SIMBOLOS DE PUNTUACION*/
+
+terminal PUNTO_COMA;
+terminal ID;
+
+
+/* NO TERMINALES */
+
+//no terminal que da inicio a todo
+non terminal inicio;
+non terminal exp, c3d,asignacion;
+
+
+
+// PRECEDENCIA
+
+precedence left MAS,MENOS;
+precedence left MULTIPLICACION,DIVISION;
+precedence left PABIERTO,PABIERTO;
+
+start with inicio;
+
+/* Reglas sintacticas */
+ 
+
+// Da inicio a las transiciones
+
+inicio ::= c3d:a {:  
+                   
+                
+             :}
+       ;
+
+c3d ::= c3d asignacion
+    | asignacion
+    ;
+
+asignacion ::= ID:id ASIGNACION exp PUNTO_COMA {:
+                                            
+                        Manejador.asignar(id.toString());
+
+                                            :}
+            ;
+
+
+exp ::= NUMERO:n                  {:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar(n.toString(),"",5,tmp.toString());
+                        RESULT = n;
+                                :}
+     | exp:v1  MAS exp:v2
+     {:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar("temp"+(Manejador.getContador()-3)+"","temp"+(Manejador.getContador()-2),1,tmp);
+     :}
+     | exp:v1 MENOS exp:v2 {:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar("temp"+(Manejador.getContador()-3)+"","temp"+(Manejador.getContador()-2),2,tmp);
+     :}
+     | exp:v1 MULTIPLICACION exp:v2{:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar("temp"+(Manejador.getContador()-3)+"","temp"+(Manejador.getContador()-2),3,tmp);
+     :}
+     | exp:v1 DIVISION exp:v2 {:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar("temp"+(Manejador.getContador()-3)+"","temp"+(Manejador.getContador()-2),4,tmp);
+     :}
+     | ID:v1 {:
+                        String tmp = Manejador.generarTemp();
+                        Manejador.validar(v1.toString(),"",5,tmp);
+                        RESULT = v1;
+     :}
+     | PABIERTO exp:v1 PCERRADO {:
+                        RESULT = v1;
+     :}
+     ;
